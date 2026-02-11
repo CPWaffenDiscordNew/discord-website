@@ -1,47 +1,63 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
-
+const express = require('express');
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static('public'));
 
-const messages = {};
-const voiceRooms = {}; // track users in voice rooms
+const voicePeers = {}; // { channelName: { socketId: peerInfo } }
 
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+io.on('connection', socket => {
+  console.log('User connected:', socket.id);
 
-  socket.on("join-room", ({ room, username }) => {
+  socket.on('join-room', ({ room, username }) => {
     socket.join(room);
-    if (messages[room]) socket.emit("load-messages", messages[room]);
-    else messages[room] = [];
-    socket.to(room).emit("message", { username: "System", text: `${username} joined the room.` });
+    socket.room = room;
+    socket.username = username;
+    socket.emit('load-messages', []); // empty or implement persistent storage
   });
 
-  socket.on("message", (data) => {
-    if (!messages[data.room]) messages[data.room] = [];
-    messages[data.room].push({ username: data.username, text: data.text });
-    io.to(data.room).emit("message", { username: data.username, text: data.text });
+  socket.on('message', data => {
+    io.to(data.room).emit('message', data);
   });
 
-  // Voice chat signaling
-  socket.on("voice-join", ({ room, username }) => {
-    if (!voiceRooms[room]) voiceRooms[room] = [];
-    voiceRooms[room].push(socket.id);
-    socket.to(room).emit("voice-user-joined", { id: socket.id, username });
+  // ---------------- Voice chat signaling ----------------
+  socket.on('voice-join', ({ channel, username }) => {
+    socket.channel = channel;
+    socket.username = username;
+    socket.join(channel);
+
+    if (!voicePeers[channel]) voicePeers[channel] = {};
+    voicePeers[channel][socket.id] = socket;
+
+    // Notify existing peers
+    for (let peerId in voicePeers[channel]) {
+      if (peerId !== socket.id) {
+        socket.emit('new-peer', peerId);
+        voicePeers[channel][peerId].emit('new-peer', socket.id);
+      }
+    }
   });
 
-  socket.on("disconnect", () => {
-    for (const room in voiceRooms) {
-      voiceRooms[room] = voiceRooms[room].filter(id => id !== socket.id);
-      socket.to(room).emit("voice-user-left", { id: socket.id });
+  socket.on('signal', ({ to, signal }) => {
+    io.to(to).emit('signal', { from: socket.id, signal });
+  });
+
+  socket.on('voice-leave', ({ channel }) => {
+    if (voicePeers[channel]) {
+      delete voicePeers[channel][socket.id];
+      socket.leave(channel);
+      io.to(channel).emit('peer-left', socket.id);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    const channel = socket.channel;
+    if (channel && voicePeers[channel]) {
+      delete voicePeers[channel][socket.id];
+      io.to(channel).emit('peer-left', socket.id);
     }
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+http.listen(3000, () => console.log('Server running on port 3000'));
