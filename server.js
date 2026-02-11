@@ -1,70 +1,66 @@
 const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+app.use(express.static(__dirname));
 
-app.use(express.static('public'));
+let messages = {}; // room: [{username, text, profilePic}]
+let voiceUsers = {}; // channel: [{id, username, profilePic}]
 
-const messages = {}; // { roomName: [ {username,text,profilePic} ] }
-const voiceChannels = {}; // { channelName: [{username, profilePic}] }
+io.on('connection', socket=>{
+  console.log('User connected', socket.id);
 
-// --- Socket.IO events ---
-io.on('connection', socket => {
-  console.log('User connected:', socket.id);
-
-  // TEXT CHAT
-  socket.on('join-room', ({ room, username, profilePic }) => {
+  // Text chat
+  socket.on('join-room', ({room, username, profilePic})=>{
     socket.join(room);
-    if (!messages[room]) messages[room] = [];
+    if(!messages[room]) messages[room]=[];
     socket.emit('load-messages', messages[room]);
-    console.log(`${username} joined room: ${room}`);
+    messages[room].push({username, text:`joined the room`, profilePic});
+    io.to(room).emit('message',{username, text:'joined the room', profilePic});
   });
 
-  socket.on('message', ({ room, text, username, profilePic }) => {
-    const msg = { username, text, profilePic };
-    if (!messages[room]) messages[room] = [];
+  socket.on('message', ({room, username, text, profilePic})=>{
+    const msg={username, text, profilePic};
     messages[room].push(msg);
     io.to(room).emit('message', msg);
   });
 
-  // VOICE CHAT
-  socket.on('voice-join', ({ channel, username, profilePic }) => {
+  // Voice chat
+  socket.on('voice-join', ({channel, username, profilePic})=>{
     socket.join(channel);
-    if (!voiceChannels[channel]) voiceChannels[channel] = [];
-    voiceChannels[channel].push({ username, profilePic, id: socket.id });
-    io.emit('voice-users', { channel, users: voiceChannels[channel] });
-    socket.broadcast.emit('new-peer', socket.id);
+    if(!voiceUsers[channel]) voiceUsers[channel]=[];
+    const existing = voiceUsers[channel].find(u=>u.id===socket.id);
+    if(existing){ existing.username=username; existing.profilePic=profilePic; }
+    else voiceUsers[channel].push({id:socket.id, username, profilePic});
+    io.to(channel).emit('voice-users',{channel, users:voiceUsers[channel]});
+    socket.to(channel).emit('new-peer', socket.id);
   });
 
-  socket.on('voice-leave', ({ channel, username }) => {
-    if (voiceChannels[channel]) {
-      voiceChannels[channel] = voiceChannels[channel].filter(u => u.id !== socket.id);
-      io.emit('voice-users', { channel, users: voiceChannels[channel] });
+  socket.on('voice-leave', ({channel})=>{
+    if(voiceUsers[channel]){
+      voiceUsers[channel]=voiceUsers[channel].filter(u=>u.id!==socket.id);
+      io.to(channel).emit('voice-users',{channel, users:voiceUsers[channel]});
     }
-    socket.broadcast.emit('peer-left', socket.id);
   });
 
-  // WebRTC signals
-  socket.on('signal', ({ to, signal }) => {
-    io.to(to).emit('signal', { from: socket.id, signal });
+  socket.on('update-profile', ({username, profilePic, channel})=>{
+    if(!voiceUsers[channel]) return;
+    const u = voiceUsers[channel].find(u=>u.id===socket.id);
+    if(u){ u.username=username; u.profilePic=profilePic; }
+    io.to(channel).emit('voice-users',{channel, users:voiceUsers[channel]});
   });
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-    // Remove user from all voice channels
-    Object.keys(voiceChannels).forEach(channel => {
-      voiceChannels[channel] = voiceChannels[channel].filter(u => u.id !== socket.id);
-      io.emit('voice-users', { channel, users: voiceChannels[channel] });
-      socket.broadcast.emit('peer-left', socket.id);
-    });
+  socket.on('signal', ({to, signal})=>{
+    io.to(to).emit('signal',{from:socket.id, signal});
+  });
+
+  socket.on('disconnect', ()=>{
+    for(let channel in voiceUsers){
+      voiceUsers[channel]=voiceUsers[channel].filter(u=>u.id!==socket.id);
+      io.to(channel).emit('voice-users',{channel, users:voiceUsers[channel]});
+    }
+    console.log('User disconnected', socket.id);
   });
 });
 
-// --- Start server ---
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+http.listen(3000, ()=>console.log('Server running on port 3000'));
