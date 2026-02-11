@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat App</title>
+<title>TurkeyCord</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 <style>
   body {
@@ -26,7 +26,7 @@
 
   .sidebar h2 {
     margin: 0 0 20px 0;
-    font-size: 20px;
+    font-size: 22px;
     text-align: center;
     color: #fff;
   }
@@ -38,6 +38,7 @@
     cursor: pointer;
     background: #202225;
     transition: 0.2s;
+    font-family: 'Times New Roman', serif;
   }
 
   .room:hover {
@@ -63,6 +64,9 @@
     font-size: 20px;
     margin-bottom: 10px;
     font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   #messages {
@@ -128,7 +132,7 @@
   /* Voice chat button */
   #voiceBtn {
     margin-left: 10px;
-    padding: 10px 15px;
+    padding: 8px 15px;
     border-radius: 20px;
     border: none;
     background: #43b581;
@@ -136,6 +140,7 @@
     font-weight: bold;
     cursor: pointer;
     transition: 0.2s;
+    font-size: 14px;
   }
 
   #voiceBtn:hover {
@@ -146,17 +151,17 @@
 <body>
 
 <div class="sidebar">
-  <h2>Rooms</h2>
+  <h2>TurkeyCord</h2>
   <div id="rooms">
-    <div class="room active" onclick="joinRoom('General')">General</div>
-    <div class="room" onclick="joinRoom('Gaming')">Gaming</div>
-    <div class="room" onclick="joinRoom('Music')">Music</div>
+    <div class="room active" onclick="joinRoom('𝔯𝔢𝔡𝔯𝔬𝔬𝔪')">𝔯𝔢𝔡𝔯𝔬𝔬𝔪</div>
+    <div class="room" onclick="joinRoom('𝔤𝔞𝔪𝔦𝔫𝔤')">𝔤𝔞𝔪𝔦𝔫𝔤</div>
+    <div class="room" onclick="joinRoom('𝔦𝔯𝔩')">𝔦𝔯𝔩</div>
   </div>
 </div>
 
 <div class="main">
   <div class="chat-header">
-    <span id="roomTitle">General</span>
+    <span id="roomTitle">𝔯𝔢𝔡𝔯𝔬𝔬𝔪</span>
     <button id="voiceBtn" onclick="toggleVoice()">🎤 Voice Chat</button>
   </div>
   <div id="messages"></div>
@@ -171,11 +176,16 @@
 <script>
 const socket = io();
 
-let currentRoom = 'General';
-let username = prompt("Enter your nickname") || "Anonymous";
-let localStream = null;
-let peers = {};
+let currentRoom = '𝔯𝔢𝔡𝔯𝔬𝔬𝔪';
 
+// Load nickname from localStorage or prompt
+let username = localStorage.getItem('nickname');
+if (!username) {
+  username = prompt("Enter your nickname") || "Anonymous";
+  localStorage.setItem('nickname', username);
+}
+
+// Join default room
 joinRoom(currentRoom);
 
 function joinRoom(room) {
@@ -197,7 +207,6 @@ function sendMessage(event) {
   msgInput.value = '';
 }
 
-// Display previous messages
 socket.on('load-messages', (msgs) => {
   const messagesDiv = document.getElementById('messages');
   msgs.forEach(m => addMessage(m.username, m.text, m.username === username));
@@ -213,18 +222,23 @@ function addMessage(sender, text, isSelf) {
   const div = document.createElement('div');
   div.classList.add('message');
   if (isSelf) div.classList.add('self');
-  div.innerHTML = `<div class="meta">${sender}</div>${text}`;
+  const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  div.innerHTML = `<div class="meta">${sender} • ${time}</div>${text}`;
   messagesDiv.appendChild(div);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-/* ----------------- VOICE CHAT ----------------- */
+/* ----------------- VOICE CHAT (placeholder for WebRTC) ----------------- */
+let localStream = null;
 async function toggleVoice() {
   if (!localStream) {
-    // Start local microphone
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    socket.emit('voice-join', { room: currentRoom, username });
-    alert("Voice chat enabled. Others can hear you!");
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      socket.emit('voice-join', { room: currentRoom, username });
+      alert("Voice chat enabled! (peer connections not implemented yet)");
+    } catch (e) {
+      alert("Microphone access denied.");
+    }
   } else {
     localStream.getTracks().forEach(track => track.stop());
     localStream = null;
