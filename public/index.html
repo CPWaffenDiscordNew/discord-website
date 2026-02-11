@@ -102,6 +102,14 @@ body {
 
 .voice-user.speaking img { border-color: #43b581; }
 
+.speaking-indicator {
+  width: 8px;
+  height: 8px;
+  background: #43b581;
+  border-radius: 50%;
+  display: inline-block;
+}
+
 /* Main chat area */
 .main {
   flex: 1;
@@ -295,9 +303,7 @@ function uploadProfilePic() {
     reader.onload = () => {
       profilePic = reader.result;
       localStorage.setItem('profilePic', profilePic);
-      // Update self messages
       document.querySelectorAll('.message.self img.profile').forEach(img=>img.src=profilePic);
-      // Update voice channel immediately
       if(currentVoiceChannel){
         socket.emit('update-profile',{username, profilePic, channel:currentVoiceChannel});
       }
@@ -310,6 +316,7 @@ function uploadProfilePic() {
 
 // --- TEXT CHAT ---
 let currentRoom = '𝔯𝔢𝔡𝔯𝔬𝔬𝔪';
+let chatHistory = {}; // store messages per room
 joinRoom(currentRoom);
 
 function joinRoom(room){
@@ -317,7 +324,14 @@ function joinRoom(room){
   document.querySelector(`.room[onclick="joinRoom('${room}')"]`).classList.add('active');
   document.getElementById('roomTitle').innerText=room;
   currentRoom=room;
-  document.getElementById('messages').innerHTML='';
+
+  // load messages from history
+  const messages=document.getElementById('messages');
+  messages.innerHTML='';
+  if(chatHistory[room]){
+    chatHistory[room].forEach(m=>addMessage(m.username,m.text,m.profilePic,m.username===username,false));
+  }
+
   socket.emit('join-room',{room, username, profilePic});
 }
 
@@ -326,14 +340,31 @@ function sendMessage(e){
   const input=document.getElementById('msgInput');
   const text=input.value.trim();
   if(!text) return;
-  socket.emit('message',{room:currentRoom,text,username,profilePic});
+  const msgObj={room:currentRoom,text,username,profilePic};
+  socket.emit('message', msgObj);
+
+  // save to local chat history
+  if(!chatHistory[currentRoom]) chatHistory[currentRoom]=[];
+  chatHistory[currentRoom].push(msgObj);
+
   input.value='';
 }
 
-socket.on('load-messages', msgs=>msgs.forEach(m=>addMessage(m.username,m.text,m.profilePic,m.username===username)));
-socket.on('message', m=>addMessage(m.username,m.text,m.profilePic,m.username===username));
+socket.on('load-messages', msgs=>{
+  if(!chatHistory[currentRoom]) chatHistory[currentRoom]=[];
+  msgs.forEach(m=>{
+    chatHistory[currentRoom].push(m);
+    addMessage(m.username,m.text,m.profilePic,m.username===username,false);
+  });
+});
 
-function addMessage(sender,text,pic,isSelf){
+socket.on('message', m=>{
+  if(!chatHistory[currentRoom]) chatHistory[currentRoom]=[];
+  chatHistory[currentRoom].push(m);
+  addMessage(m.username,m.text,m.profilePic,m.username===username,false);
+});
+
+function addMessage(sender,text,pic,isSelf,scroll=true){
   const messages=document.getElementById('messages');
   const div=document.createElement('div');
   div.classList.add('message');
@@ -341,7 +372,7 @@ function addMessage(sender,text,pic,isSelf){
   const time=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
   div.innerHTML=`<img class="profile" src="${pic||'default.png'}" /><div><div class="meta">${sender} • ${time}</div>${text}</div>`;
   messages.appendChild(div);
-  messages.scrollTop=messages.scrollHeight;
+  if(scroll) messages.scrollTop=messages.scrollHeight;
 }
 
 // --- VOICE CHAT ---
@@ -371,13 +402,13 @@ function updateVoiceUsers(channel){
   (voiceUsers[channel]||[]).forEach(u=>{
     const div=document.createElement('div');
     div.classList.add('voice-user');
-    if(speaking[u.id]) div.classList.add('speaking');
-    div.innerHTML=`<img src="${u.profilePic||'default.png'}" /> ${u.username}`;
+    const speakingDot = speaking[u.id] ? '<span class="speaking-indicator"></span>' : '';
+    div.innerHTML=`<img src="${u.profilePic||'default.png'}" /> ${u.username} ${speakingDot}`;
     container.appendChild(div);
   });
 }
 
-// WebRTC improved to handle joins/leaves dynamically
+// WebRTC
 socket.on('voice-users', data=>{
   voiceUsers[data.channel]=data.users;
   updateVoiceUsers(data.channel);
