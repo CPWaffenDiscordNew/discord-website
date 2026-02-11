@@ -24,14 +24,32 @@
     padding: 20px 10px;
   }
 
-  .sidebar h2 {
-    margin: 0 0 20px 0;
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .sidebar-header img {
+    width: 32px;
+    height: 32px;
+    margin-right: 10px;
+  }
+
+  .sidebar-header h2 {
+    margin: 0;
     font-size: 22px;
-    text-align: center;
     color: #fff;
   }
 
-  .room {
+  .section-title {
+    margin: 15px 0 5px 10px;
+    font-weight: bold;
+    color: #b9bbbe;
+  }
+
+  .room, .voice-channel {
     padding: 10px 15px;
     margin: 5px 0;
     border-radius: 5px;
@@ -41,12 +59,12 @@
     font-family: 'Times New Roman', serif;
   }
 
-  .room:hover {
+  .room:hover, .voice-channel:hover {
     background: #5865f2;
     color: #fff;
   }
 
-  .room.active {
+  .active {
     background: #5865f2;
     color: #fff;
   }
@@ -129,40 +147,39 @@
     background: #4752c4;
   }
 
-  /* Voice chat button */
-  #voiceBtn {
+  .voice-status {
+    font-size: 12px;
+    color: #43b581;
     margin-left: 10px;
-    padding: 8px 15px;
-    border-radius: 20px;
-    border: none;
-    background: #43b581;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-    font-size: 14px;
-  }
-
-  #voiceBtn:hover {
-    background: #3a9e6d;
   }
 </style>
 </head>
 <body>
 
 <div class="sidebar">
-  <h2>TurkeyCord</h2>
+  <div class="sidebar-header">
+    <img src="turkey.png" alt="Turkey Icon" />
+    <h2>TurkeyCord</h2>
+  </div>
+
+  <div class="section-title">TEXT ROOMS</div>
   <div id="rooms">
     <div class="room active" onclick="joinRoom('𝔯𝔢𝔡𝔯𝔬𝔬𝔪')">𝔯𝔢𝔡𝔯𝔬𝔬𝔪</div>
     <div class="room" onclick="joinRoom('𝔤𝔞𝔪𝔦𝔫𝔤')">𝔤𝔞𝔪𝔦𝔫𝔤</div>
     <div class="room" onclick="joinRoom('𝔦𝔯𝔩')">𝔦𝔯𝔩</div>
+  </div>
+
+  <div class="section-title">VOICE CHANNELS</div>
+  <div id="voiceChannels">
+    <div class="voice-channel" onclick="toggleVoiceChannel('Lobby')">Lobby <span id="vc-Lobby" class="voice-status"></span></div>
+    <div class="voice-channel" onclick="toggleVoiceChannel('Music')">Music <span id="vc-Music" class="voice-status"></span></div>
+    <div class="voice-channel" onclick="toggleVoiceChannel('Gaming')">Gaming <span id="vc-Gaming" class="voice-status"></span></div>
   </div>
 </div>
 
 <div class="main">
   <div class="chat-header">
     <span id="roomTitle">𝔯𝔢𝔡𝔯𝔬𝔬𝔪</span>
-    <button id="voiceBtn" onclick="toggleVoice()">🎤 Voice Chat</button>
   </div>
   <div id="messages"></div>
 
@@ -175,17 +192,11 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
+let username = localStorage.getItem('nickname') || prompt("Enter your nickname") || "Anonymous";
+localStorage.setItem('nickname', username);
 
+// Text chat
 let currentRoom = '𝔯𝔢𝔡𝔯𝔬𝔬𝔪';
-
-// Load nickname from localStorage or prompt
-let username = localStorage.getItem('nickname');
-if (!username) {
-  username = prompt("Enter your nickname") || "Anonymous";
-  localStorage.setItem('nickname', username);
-}
-
-// Join default room
 joinRoom(currentRoom);
 
 function joinRoom(room) {
@@ -194,7 +205,6 @@ function joinRoom(room) {
   document.getElementById('roomTitle').innerText = room;
   currentRoom = room;
   document.getElementById('messages').innerHTML = '';
-
   socket.emit('join-room', { room, username });
 }
 
@@ -208,9 +218,7 @@ function sendMessage(event) {
 }
 
 socket.on('load-messages', (msgs) => {
-  const messagesDiv = document.getElementById('messages');
   msgs.forEach(m => addMessage(m.username, m.text, m.username === username));
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 });
 
 socket.on('message', (data) => {
@@ -228,21 +236,43 @@ function addMessage(sender, text, isSelf) {
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-/* ----------------- VOICE CHAT (placeholder for WebRTC) ----------------- */
+/* ---------------- VOICE CHAT ---------------- */
 let localStream = null;
-async function toggleVoice() {
-  if (!localStream) {
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-      socket.emit('voice-join', { room: currentRoom, username });
-      alert("Voice chat enabled! (peer connections not implemented yet)");
-    } catch (e) {
-      alert("Microphone access denied.");
-    }
-  } else {
+let currentVoiceChannel = null;
+let peers = {}; // peer connections per channel
+
+async function toggleVoiceChannel(channelName) {
+  if (currentVoiceChannel === channelName) {
+    leaveVoiceChannel();
+    return;
+  }
+
+  if (currentVoiceChannel) leaveVoiceChannel();
+
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    currentVoiceChannel = channelName;
+    document.querySelectorAll('.voice-channel').forEach(vc => vc.classList.remove('active'));
+    document.querySelector(`.voice-channel[onclick="toggleVoiceChannel('${channelName}')"]`).classList.add('active');
+    document.getElementById(`vc-${channelName}`).innerText = "🎤";
+    socket.emit('voice-join', { channel: channelName, username });
+    alert(`Joined voice channel: ${channelName} (WebRTC not fully connected yet)`);
+    // Next step: WebRTC peer connections
+  } catch (e) {
+    alert("Microphone access denied.");
+  }
+}
+
+function leaveVoiceChannel() {
+  if (localStream) {
     localStream.getTracks().forEach(track => track.stop());
     localStream = null;
-    alert("Voice chat disabled.");
+  }
+  if (currentVoiceChannel) {
+    socket.emit('voice-leave', { channel: currentVoiceChannel, username });
+    document.getElementById(`vc-${currentVoiceChannel}`).innerText = "";
+    currentVoiceChannel = null;
+    peers = {};
   }
 }
 </script>
