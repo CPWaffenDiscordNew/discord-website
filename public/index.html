@@ -131,21 +131,13 @@ body {
   gap: 8px;
 }
 
-/* Modern Discord-like scrollbar */
+/* Modern scrollbar */
 #messages::-webkit-scrollbar {
   width: 8px;
 }
-#messages::-webkit-scrollbar-track {
-  background: #2f3136;
-  border-radius: 4px;
-}
-#messages::-webkit-scrollbar-thumb {
-  background-color: #202225;
-  border-radius: 4px;
-}
-#messages::-webkit-scrollbar-thumb:hover {
-  background-color: #5865f2;
-}
+#messages::-webkit-scrollbar-track { background: #2f3136; border-radius: 4px; }
+#messages::-webkit-scrollbar-thumb { background-color: #202225; border-radius: 4px; }
+#messages::-webkit-scrollbar-thumb:hover { background-color: #5865f2; }
 
 .message {
   max-width: 70%;
@@ -223,7 +215,6 @@ body {
 }
 
 #nicknameBtn:hover, #uploadPicBtn:hover { background: #4752c4; }
-
 #nicknameBtn { bottom: 40px; }
 #uploadPicBtn { bottom: 10px; }
 </style>
@@ -304,6 +295,12 @@ function uploadProfilePic() {
     reader.onload = () => {
       profilePic = reader.result;
       localStorage.setItem('profilePic', profilePic);
+      // Update self messages
+      document.querySelectorAll('.message.self img.profile').forEach(img=>img.src=profilePic);
+      // Update voice channel immediately
+      if(currentVoiceChannel){
+        socket.emit('update-profile',{username, profilePic, channel:currentVoiceChannel});
+      }
       alert("Profile picture updated!");
     };
     reader.readAsDataURL(file);
@@ -315,47 +312,46 @@ function uploadProfilePic() {
 let currentRoom = '𝔯𝔢𝔡𝔯𝔬𝔬𝔪';
 joinRoom(currentRoom);
 
-function joinRoom(room) {
-  document.querySelectorAll('.room').forEach(r => r.classList.remove('active'));
+function joinRoom(room){
+  document.querySelectorAll('.room').forEach(r=>r.classList.remove('active'));
   document.querySelector(`.room[onclick="joinRoom('${room}')"]`).classList.add('active');
-  document.getElementById('roomTitle').innerText = room;
-  currentRoom = room;
-  document.getElementById('messages').innerHTML = '';
-  socket.emit('join-room', { room, username, profilePic });
+  document.getElementById('roomTitle').innerText=room;
+  currentRoom=room;
+  document.getElementById('messages').innerHTML='';
+  socket.emit('join-room',{room, username, profilePic});
 }
 
-function sendMessage(e) {
+function sendMessage(e){
   e.preventDefault();
-  const input = document.getElementById('msgInput');
-  const text = input.value.trim();
+  const input=document.getElementById('msgInput');
+  const text=input.value.trim();
   if(!text) return;
-  socket.emit('message', { room: currentRoom, text, username, profilePic });
-  input.value = '';
+  socket.emit('message',{room:currentRoom,text,username,profilePic});
+  input.value='';
 }
 
-socket.on('load-messages', msgs => msgs.forEach(m => addMessage(m.username, m.text, m.profilePic, m.username===username)));
-socket.on('message', m => addMessage(m.username, m.text, m.profilePic, m.username===username));
+socket.on('load-messages', msgs=>msgs.forEach(m=>addMessage(m.username,m.text,m.profilePic,m.username===username)));
+socket.on('message', m=>addMessage(m.username,m.text,m.profilePic,m.username===username));
 
-function addMessage(sender, text, pic, isSelf) {
-  const messages = document.getElementById('messages');
-  const div = document.createElement('div');
+function addMessage(sender,text,pic,isSelf){
+  const messages=document.getElementById('messages');
+  const div=document.createElement('div');
   div.classList.add('message');
   if(isSelf) div.classList.add('self');
-  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  div.innerHTML = `<img class="profile" src="${pic || 'Turkey.png'}" /><div><div class="meta">${sender} • ${time}</div>${text}</div>`;
+  const time=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=`<img class="profile" src="${pic||'Turkey.png'}" /><div><div class="meta">${sender} • ${time}</div>${text}</div>`;
   messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+  messages.scrollTop=messages.scrollHeight;
 }
 
 // --- VOICE CHAT ---
-let localStream = null;
-let currentVoiceChannel = null;
-let peers = {};
-let voiceUsers = {};
-let speaking = {};
+let localStream=null;
+let currentVoiceChannel=null;
+let peers={};
+let voiceUsers={};
+let speaking={};
 
-// Voice channel join/leave
-async function toggleVoiceChannel(channelName) {
+async function toggleVoiceChannel(channelName){
   if(currentVoiceChannel===channelName){ leaveVoiceChannel(); return; }
   if(currentVoiceChannel) leaveVoiceChannel();
 
@@ -370,26 +366,26 @@ async function toggleVoiceChannel(channelName) {
 }
 
 function updateVoiceUsers(channel){
-  const container = document.getElementById(`users-${channel}`);
-  container.innerHTML = '';
+  const container=document.getElementById(`users-${channel}`);
+  container.innerHTML='';
   (voiceUsers[channel]||[]).forEach(u=>{
-    const div = document.createElement('div');
+    const div=document.createElement('div');
     div.classList.add('voice-user');
     if(speaking[u.id]) div.classList.add('speaking');
-    div.innerHTML = `<img src="${u.profilePic || 'Turkey.png'}" /> ${u.username}`;
+    div.innerHTML=`<img src="${u.profilePic||'Turkey.png'}" /> ${u.username}`;
     container.appendChild(div);
   });
 }
 
-// WebRTC setup
+// WebRTC
 socket.on('voice-users', data=>{
-  voiceUsers[data.channel] = data.users;
+  voiceUsers[data.channel]=data.users;
   updateVoiceUsers(data.channel);
 
   if(data.channel===currentVoiceChannel){
     data.users.forEach(u=>{
       if(u.id && u.id!==socket.id && !peers[u.id]){
-        const peer = new SimplePeer({initiator:true, trickle:false, stream:localStream});
+        const peer=new SimplePeer({initiator:true,trickle:false,stream:localStream});
         peer.on('signal', sig=>socket.emit('signal',{to:u.id, signal:sig}));
         peer.on('stream', s=>playStream(s,u.id));
         peers[u.id]=peer;
@@ -400,7 +396,7 @@ socket.on('voice-users', data=>{
 
 socket.on('new-peer', peerId=>{
   if(peers[peerId]) return;
-  const peer = new SimplePeer({initiator:false, trickle:false, stream:localStream});
+  const peer=new SimplePeer({initiator:false,trickle:false,stream:localStream});
   peer.on('signal', sig=>socket.emit('signal',{to:peerId, signal:sig}));
   peer.on('stream', s=>playStream(s,peerId));
   peers[peerId]=peer;
@@ -408,7 +404,7 @@ socket.on('new-peer', peerId=>{
 
 socket.on('signal', ({from, signal})=>{
   if(!peers[from]){
-    const peer = new SimplePeer({initiator:true, trickle:false, stream:localStream});
+    const peer=new SimplePeer({initiator:true,trickle:false,stream:localStream});
     peer.on('signal', sig=>socket.emit('signal',{to:from, signal:sig}));
     peer.on('stream', s=>playStream(s, from));
     peers[from]=peer;
@@ -422,27 +418,26 @@ socket.on('peer-left', peerId=>{
   if(currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
 });
 
-// Detect speaking (volume) locally
 function playStream(stream, peerId){
-  let audio = document.getElementById(`audio-${peerId}`);
+  let audio=document.getElementById(`audio-${peerId}`);
   if(!audio){
-    audio = document.createElement('audio');
+    audio=document.createElement('audio');
     audio.id=`audio-${peerId}`;
     audio.autoplay=true;
     audio.srcObject=stream;
     document.body.appendChild(audio);
 
-    const context = new AudioContext();
-    const src = context.createMediaStreamSource(stream);
-    const analyser = context.createAnalyser();
+    const context=new AudioContext();
+    const src=context.createMediaStreamSource(stream);
+    const analyser=context.createAnalyser();
     src.connect(analyser);
-    analyser.fftSize = 256;
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    analyser.fftSize=256;
+    const dataArray=new Uint8Array(analyser.frequencyBinCount);
 
     function checkSpeaking(){
       analyser.getByteFrequencyData(dataArray);
-      const volume = dataArray.reduce((a,b)=>a+b,0)/dataArray.length;
-      speaking[peerId] = volume>20; // tweak sensitivity
+      const volume=dataArray.reduce((a,b)=>a+b,0)/dataArray.length;
+      speaking[peerId]=volume>20;
       if(currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
       requestAnimationFrame(checkSpeaking);
     }
@@ -450,7 +445,6 @@ function playStream(stream, peerId){
   }
 }
 
-// Leave voice
 function leaveVoiceChannel(){
   if(localStream) localStream.getTracks().forEach(t=>t.stop());
   for(let id in peers) peers[id].destroy();
