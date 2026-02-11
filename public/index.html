@@ -6,159 +6,190 @@
 <title>TurkeyCord</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 <style>
-  body {
-    margin: 0;
-    font-family: 'Roboto', sans-serif;
-    background: #36393f;
-    color: #dcddde;
-    display: flex;
-    height: 100vh;
-  }
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  background: #36393f;
+  color: #dcddde;
+  display: flex;
+  height: 100vh;
+}
 
-  /* Sidebar */
-  .sidebar {
-    width: 250px;
-    background: #2f3136;
-    display: flex;
-    flex-direction: column;
-    padding: 20px 10px;
-  }
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: #2f3136;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 10px;
+  position: relative;
+}
 
-  .sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
 
-  .sidebar-header img {
-    width: 32px;
-    height: 32px;
-    margin-right: 10px;
-  }
+.sidebar-header img {
+  width: 32px;
+  height: 32px;
+  margin-right: 10px;
+}
 
-  .sidebar-header h2 {
-    margin: 0;
-    font-size: 22px;
-    color: #fff;
-  }
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #fff;
+}
 
-  .section-title {
-    margin: 15px 0 5px 10px;
-    font-weight: bold;
-    color: #b9bbbe;
-  }
+.section-title {
+  margin: 15px 0 5px 10px;
+  font-weight: bold;
+  color: #b9bbbe;
+}
 
-  .room, .voice-channel {
-    padding: 10px 15px;
-    margin: 5px 0;
-    border-radius: 5px;
-    cursor: pointer;
-    background: #202225;
-    transition: 0.2s;
-    font-family: 'Times New Roman', serif;
-  }
+.room, .voice-channel {
+  padding: 10px 15px;
+  margin: 5px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #202225;
+  transition: 0.2s;
+  font-family: 'Times New Roman', serif;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  .room:hover, .voice-channel:hover {
-    background: #5865f2;
-    color: #fff;
-  }
+.room:hover, .voice-channel:hover {
+  background: #5865f2;
+  color: #fff;
+}
 
-  .active {
-    background: #5865f2;
-    color: #fff;
-  }
+.active {
+  background: #5865f2;
+  color: #fff;
+}
 
-  /* Main chat area */
-  .main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    background: #36393f;
-  }
+/* Main chat area */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: #36393f;
+}
 
-  .chat-header {
-    font-size: 20px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+.chat-header {
+  font-size: 20px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  #messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-    background: #2f3136;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: #2f3136;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  .message {
-    max-width: 70%;
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: #40444b;
-    word-wrap: break-word;
-  }
+.message {
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #40444b;
+  word-wrap: break-word;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 
-  .message.self {
-    align-self: flex-end;
-    background: #7289da;
-    color: #fff;
-  }
+.message.self {
+  align-self: flex-end;
+  background: #7289da;
+  color: #fff;
+}
 
-  .message .meta {
-    font-size: 12px;
-    color: #b9bbbe;
-    margin-bottom: 2px;
-  }
+.message .meta {
+  font-size: 12px;
+  color: #b9bbbe;
+  margin-bottom: 2px;
+}
 
-  #messageForm {
-    display: flex;
-    margin-top: 10px;
-  }
+.message img.profile {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
 
-  #msgInput {
-    flex: 1;
-    padding: 10px 15px;
-    border-radius: 20px 0 0 20px;
-    border: none;
-    outline: none;
-    font-size: 14px;
-  }
+#messageForm {
+  display: flex;
+  margin-top: 10px;
+}
 
-  #sendBtn {
-    padding: 10px 20px;
-    background: #5865f2;
-    border: none;
-    border-radius: 0 20px 20px 0;
-    cursor: pointer;
-    color: white;
-    font-weight: bold;
-    transition: 0.2s;
-  }
+#msgInput {
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 20px 0 0 20px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
 
-  #sendBtn:hover {
-    background: #4752c4;
-  }
+#sendBtn {
+  padding: 10px 20px;
+  background: #5865f2;
+  border: none;
+  border-radius: 0 20px 20px 0;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  transition: 0.2s;
+}
 
-  .voice-status {
-    font-size: 12px;
-    color: #43b581;
-    margin-left: 10px;
-  }
+#sendBtn:hover {
+  background: #4752c4;
+}
+
+.voice-status {
+  font-size: 12px;
+  color: #43b581;
+  margin-left: 10px;
+}
+
+/* Nickname button */
+#nicknameBtn {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: #5865f2;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+#nicknameBtn:hover {
+  background: #4752c4;
+}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
   <div class="sidebar-header">
-    <img src="turkey.png" alt="Turkey Icon" />
+    <img src="Turkey.png" alt="Turkey Icon" />
     <h2>TurkeyCord</h2>
   </div>
 
@@ -175,6 +206,8 @@
     <div class="voice-channel" onclick="toggleVoiceChannel('Music')">Music <span id="vc-Music" class="voice-status"></span></div>
     <div class="voice-channel" onclick="toggleVoiceChannel('Gaming')">Gaming <span id="vc-Gaming" class="voice-status"></span></div>
   </div>
+
+  <button id="nicknameBtn" onclick="changeNickname()">Change Name</button>
 </div>
 
 <div class="main">
@@ -190,12 +223,23 @@
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
 <script>
 const socket = io();
+
+// --- NICKNAME & PROFILE ---
 let username = localStorage.getItem('nickname') || prompt("Enter your nickname") || "Anonymous";
+let profilePic = localStorage.getItem('profilePic') || ""; 
 localStorage.setItem('nickname', username);
 
-// Text chat
+function changeNickname() {
+  const newName = prompt("Enter new nickname", username);
+  if (newName) { username = newName; localStorage.setItem('nickname', username); }
+  const newPic = prompt("Enter profile image URL (optional)", profilePic);
+  if (newPic) { profilePic = newPic; localStorage.setItem('profilePic', profilePic); }
+}
+
+// --- TEXT CHAT ---
 let currentRoom = '𝔯𝔢𝔡𝔯𝔬𝔬𝔪';
 joinRoom(currentRoom);
 
@@ -208,73 +252,94 @@ function joinRoom(room) {
   socket.emit('join-room', { room, username });
 }
 
-function sendMessage(event) {
-  event.preventDefault();
-  const msgInput = document.getElementById('msgInput');
-  const text = msgInput.value.trim();
+function sendMessage(e) {
+  e.preventDefault();
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
   if (!text) return;
-  socket.emit('message', { room: currentRoom, text, username });
-  msgInput.value = '';
+  socket.emit('message', { room: currentRoom, text, username, profilePic });
+  input.value = '';
 }
 
-socket.on('load-messages', (msgs) => {
-  msgs.forEach(m => addMessage(m.username, m.text, m.username === username));
+socket.on('load-messages', msgs => {
+  msgs.forEach(m => addMessage(m.username, m.text, m.profilePic, m.username === username));
 });
+socket.on('message', m => addMessage(m.username, m.text, m.profilePic, m.username === username));
 
-socket.on('message', (data) => {
-  addMessage(data.username, data.text, data.username === username);
-});
-
-function addMessage(sender, text, isSelf) {
-  const messagesDiv = document.getElementById('messages');
+function addMessage(sender, text, pic, isSelf) {
+  const messages = document.getElementById('messages');
   const div = document.createElement('div');
   div.classList.add('message');
   if (isSelf) div.classList.add('self');
-  const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  div.innerHTML = `<div class="meta">${sender} • ${time}</div>${text}`;
-  messagesDiv.appendChild(div);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  div.innerHTML = `<img class="profile" src="${pic || 'Turkey.png'}" /><div><div class="meta">${sender} • ${time}</div>${text}</div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
 }
 
-/* ---------------- VOICE CHAT ---------------- */
+// --- VOICE CHAT ---
 let localStream = null;
 let currentVoiceChannel = null;
-let peers = {}; // peer connections per channel
+let peers = {};
 
 async function toggleVoiceChannel(channelName) {
-  if (currentVoiceChannel === channelName) {
-    leaveVoiceChannel();
-    return;
-  }
-
-  if (currentVoiceChannel) leaveVoiceChannel();
+  if(currentVoiceChannel === channelName) { leaveVoiceChannel(); return; }
+  if(currentVoiceChannel) leaveVoiceChannel();
 
   try {
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    localStream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
     currentVoiceChannel = channelName;
-    document.querySelectorAll('.voice-channel').forEach(vc => vc.classList.remove('active'));
+    document.querySelectorAll('.voice-channel').forEach(vc=>vc.classList.remove('active'));
     document.querySelector(`.voice-channel[onclick="toggleVoiceChannel('${channelName}')"]`).classList.add('active');
-    document.getElementById(`vc-${channelName}`).innerText = "🎤";
-    socket.emit('voice-join', { channel: channelName, username });
-    alert(`Joined voice channel: ${channelName} (WebRTC not fully connected yet)`);
-    // Next step: WebRTC peer connections
-  } catch (e) {
-    alert("Microphone access denied.");
+    document.getElementById(`vc-${channelName}`).innerText="🎤";
+    socket.emit('voice-join',{channel:channelName, username});
+  } catch(e){ alert("Microphone access denied."); }
+}
+
+socket.on('new-peer', peerId=>{
+  if(peers[peerId]) return;
+  const peer = new SimplePeer({initiator:false, trickle:false, stream:localStream});
+  peer.on('signal', sig=>socket.emit('signal',{to:peerId, signal:sig}));
+  peer.on('stream', s=>playStream(s, peerId));
+  peers[peerId]=peer;
+});
+
+socket.on('signal', ({from, signal})=>{
+  if(!peers[from]){
+    const peer = new SimplePeer({initiator:true, trickle:false, stream:localStream});
+    peer.on('signal', sig=>socket.emit('signal',{to:from, signal:sig}));
+    peer.on('stream', s=>playStream(s, from));
+    peers[from]=peer;
+  }
+  peers[from].signal(signal);
+});
+
+socket.on('peer-left', peerId=>{
+  if(peers[peerId]){ peers[peerId].destroy(); delete peers[peerId]; }
+});
+
+function leaveVoiceChannel(){
+  if(localStream) localStream.getTracks().forEach(t=>t.stop());
+  for(let id in peers) peers[id].destroy();
+  peers={};
+  if(currentVoiceChannel){
+    socket.emit('voice-leave',{channel:currentVoiceChannel, username});
+    document.getElementById(`vc-${currentVoiceChannel}`).innerText="";
+    currentVoiceChannel=null;
   }
 }
 
-function leaveVoiceChannel() {
-  if (localStream) {
-    localStream.getTracks().forEach(track => track.stop());
-    localStream = null;
+function playStream(stream, peerId){
+  let audio = document.getElementById(`audio-${peerId}`);
+  if(!audio){
+    audio = document.createElement('audio');
+    audio.id=`audio-${peerId}`;
+    audio.autoplay=true;
+    document.body.appendChild(audio);
   }
-  if (currentVoiceChannel) {
-    socket.emit('voice-leave', { channel: currentVoiceChannel, username });
-    document.getElementById(`vc-${currentVoiceChannel}`).innerText = "";
-    currentVoiceChannel = null;
-    peers = {};
-  }
+  audio.srcObject = stream;
 }
 </script>
+
 </body>
 </html>
