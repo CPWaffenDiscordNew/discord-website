@@ -263,7 +263,7 @@ const socket = io();
 
 // --- NICKNAME & PROFILE ---
 let username = localStorage.getItem('nickname') || prompt("Enter your nickname") || "Anonymous";
-let profilePic = localStorage.getItem('profilePic') || ""; 
+let profilePic = localStorage.getItem('profilePic') || "";
 localStorage.setItem('nickname', username);
 
 function changeNickname() {
@@ -315,7 +315,7 @@ function addMessage(sender, text, pic, isSelf) {
 let localStream = null;
 let currentVoiceChannel = null;
 let peers = {};
-let voiceUsers = {}; // {channelName: [{username, profilePic}...]}
+let voiceUsers = {};
 
 async function toggleVoiceChannel(channelName) {
   if(currentVoiceChannel === channelName) { leaveVoiceChannel(); return; }
@@ -343,17 +343,29 @@ function updateVoiceUsers(channel) {
   });
 }
 
-// Socket events for voice users
+// WebRTC setup
 socket.on('voice-users', data=>{
   voiceUsers[data.channel] = data.users;
   updateVoiceUsers(data.channel);
+
+  // Connect to all existing users
+  if(data.channel===currentVoiceChannel){
+    data.users.forEach(u=>{
+      if(u.id && u.id!==socket.id && !peers[u.id]){
+        const peer = new SimplePeer({initiator:true, trickle:false, stream:localStream});
+        peer.on('signal', sig=>socket.emit('signal',{to:u.id, signal:sig}));
+        peer.on('stream', s=>playStream(s,u.id));
+        peers[u.id]=peer;
+      }
+    });
+  }
 });
 
 socket.on('new-peer', peerId=>{
   if(peers[peerId]) return;
   const peer = new SimplePeer({initiator:false, trickle:false, stream:localStream});
   peer.on('signal', sig=>socket.emit('signal',{to:peerId, signal:sig}));
-  peer.on('stream', s=>playStream(s, peerId));
+  peer.on('stream', s=>playStream(s,peerId));
   peers[peerId]=peer;
 });
 
