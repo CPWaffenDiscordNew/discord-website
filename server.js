@@ -1,66 +1,71 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-app.use(express.static(__dirname));
+const server = http.createServer(app);
+const io = new Server(server);
 
-let messages = {}; // room: [{username, text, profilePic}]
-let voiceUsers = {}; // channel: [{id, username, profilePic}]
+app.use(express.static('public'));
 
-io.on('connection', socket=>{
-  console.log('User connected', socket.id);
+const rooms = {}; // { roomName: [{username, profilePic}] }
+const voiceChannels = {}; // { channelName: [{id, username, profilePic}] }
 
-  // Text chat
-  socket.on('join-room', ({room, username, profilePic})=>{
+io.on('connection', socket => {
+  console.log('a user connected', socket.id);
+
+  // --- TEXT CHAT ---
+  socket.on('join-room', ({room, username, profilePic}) => {
     socket.join(room);
-    if(!messages[room]) messages[room]=[];
-    socket.emit('load-messages', messages[room]);
-    messages[room].push({username, text:`joined the room`, profilePic});
-    io.to(room).emit('message',{username, text:'joined the room', profilePic});
+    if (!rooms[room]) rooms[room] = [];
+    rooms[room].push({ id: socket.id, username, profilePic });
+    // Load previous messages if needed
+    // For now we won't persist text messages
+    socket.emit('load-messages', []); 
   });
 
-  socket.on('message', ({room, username, text, profilePic})=>{
-    const msg={username, text, profilePic};
-    messages[room].push(msg);
-    io.to(room).emit('message', msg);
+  socket.on('message', ({room, text, username, profilePic}) => {
+    io.to(room).emit('message', { text, username, profilePic });
   });
 
-  // Voice chat
-  socket.on('voice-join', ({channel, username, profilePic})=>{
+  // --- VOICE CHAT ---
+  socket.on('voice-join', ({channel, username, profilePic}) => {
     socket.join(channel);
-    if(!voiceUsers[channel]) voiceUsers[channel]=[];
-    const existing = voiceUsers[channel].find(u=>u.id===socket.id);
-    if(existing){ existing.username=username; existing.profilePic=profilePic; }
-    else voiceUsers[channel].push({id:socket.id, username, profilePic});
-    io.to(channel).emit('voice-users',{channel, users:voiceUsers[channel]});
-    socket.to(channel).emit('new-peer', socket.id);
+    if (!voiceChannels[channel]) voiceChannels[channel] = [];
+    voiceChannels[channel].push({ id: socket.id, username, profilePic });
+    // Send new peer list to everyone in channel
+    const others = voiceChannels[channel].filter(u => u.id !== socket.id);
+    socket.emit('voice-users', { channel, users: voiceChannels[channel] });
+    others.forEach(u => io.to(u.id).emit('new-peer', socket.id));
+    io.to(channel).emit('voice-users', { channel, users: voiceChannels[channel] });
   });
 
-  socket.on('voice-leave', ({channel})=>{
-    if(voiceUsers[channel]){
-      voiceUsers[channel]=voiceUsers[channel].filter(u=>u.id!==socket.id);
-      io.to(channel).emit('voice-users',{channel, users:voiceUsers[channel]});
+  socket.on('update-profile', ({username, profilePic, channel}) => {
+    if (!voiceChannels[channel]) return;
+    const user = voiceChannels[channel].find(u => u.id === socket.id);
+    if (user) { user.username = username; user.profilePic = profilePic; }
+    io.to(channel).emit('voice-users', { channel, users: voiceChannels[channel] });
+  });
+
+  socket.on('signal', ({to, signal}) => {
+    io.to(to).emit('signal', { from: socket.id, signal });
+  });
+
+  socket.on('voice-leave', ({channel, username}) => {
+    if (!voiceChannels[channel]) return;
+    voiceChannels[channel] = voiceChannels[channel].filter(u => u.id !== socket.id);
+    io.to(channel).emit('peer-left', socket.id);
+    io.to(channel).emit('voice-users', { channel, users: voiceChannels[channel] });
+  });
+
+  socket.on('disconnect', () => {
+    // Remove from all voice channels
+    for (const channel in voiceChannels) {
+      voiceChannels[channel] = voiceChannels[channel].filter(u => u.id !== socket.id);
+      io.to(channel).emit('peer-left', socket.id);
+      io.to(channel).emit('voice-users', { channel, users: voiceChannels[channel] });
     }
-  });
-
-  socket.on('update-profile', ({username, profilePic, channel})=>{
-    if(!voiceUsers[channel]) return;
-    const u = voiceUsers[channel].find(u=>u.id===socket.id);
-    if(u){ u.username=username; u.profilePic=profilePic; }
-    io.to(channel).emit('voice-users',{channel, users:voiceUsers[channel]});
-  });
-
-  socket.on('signal', ({to, signal})=>{
-    io.to(to).emit('signal',{from:socket.id, signal});
-  });
-
-  socket.on('disconnect', ()=>{
-    for(let channel in voiceUsers){
-      voiceUsers[channel]=voiceUsers[channel].filter(u=>u.id!==socket.id);
-      io.to(channel).emit('voice-users',{channel, users:voiceUsers[channel]});
-    }
-    console.log('User disconnected', socket.id);
   });
 });
 
-http.listen(3000, ()=>console.log('Server running on port 3000'));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
