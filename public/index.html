@@ -63,15 +63,8 @@ body {
   align-items: center;
 }
 
-.room:hover, .voice-channel:hover {
-  background: #5865f2;
-  color: #fff;
-}
-
-.active {
-  background: #5865f2;
-  color: #fff;
-}
+.room:hover, .voice-channel:hover { background: #5865f2; color: #fff; }
+.active { background: #5865f2; color: #fff; }
 
 /* Voice channel user list */
 .voice-users {
@@ -92,14 +85,7 @@ body {
 }
 
 .voice-user.speaking { color: #43b581; font-weight: bold; }
-
-.voice-user img {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-}
-
+.voice-user img { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; }
 .voice-user.speaking img { border-color: #43b581; }
 
 /* Main chat area */
@@ -131,10 +117,8 @@ body {
   gap: 8px;
 }
 
-/* Modern scrollbar */
-#messages::-webkit-scrollbar {
-  width: 8px;
-}
+/* Scrollbar */
+#messages::-webkit-scrollbar { width: 8px; }
 #messages::-webkit-scrollbar-track { background: #2f3136; border-radius: 4px; }
 #messages::-webkit-scrollbar-thumb { background-color: #202225; border-radius: 4px; }
 #messages::-webkit-scrollbar-thumb:hover { background-color: #5865f2; }
@@ -162,61 +146,42 @@ body {
   margin-bottom: 2px;
 }
 
-.message img.profile {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-}
+.message img.profile { width: 25px; height: 25px; border-radius: 50%; }
 
-#messageForm {
+#messageForm { display: flex; margin-top: 10px; }
+#msgInput { flex: 1; padding: 10px 15px; border-radius: 20px 0 0 20px; border: none; outline: none; font-size: 14px; }
+#sendBtn { padding: 10px 20px; background: #5865f2; border: none; border-radius: 0 20px 20px 0; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; }
+#sendBtn:hover { background: #4752c4; }
+
+.voice-status { font-size: 12px; color: #43b581; margin-left: 10px; }
+
+/* Bottom-left control buttons (Discord style) */
+#controlButtons {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
   display: flex;
-  margin-top: 10px;
+  flex-direction: column;
+  gap: 5px;
 }
 
-#msgInput {
-  flex: 1;
-  padding: 10px 15px;
-  border-radius: 20px 0 0 20px;
-  border: none;
-  outline: none;
-  font-size: 14px;
-}
-
-#sendBtn {
-  padding: 10px 20px;
+.control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 35px;
   background: #5865f2;
-  border: none;
-  border-radius: 0 20px 20px 0;
-  cursor: pointer;
   color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 13px;
   font-weight: bold;
+  cursor: pointer;
   transition: 0.2s;
 }
 
-#sendBtn:hover { background: #4752c4; }
-
-.voice-status {
-  font-size: 12px;
-  color: #43b581;
-  margin-left: 10px;
-}
-
-/* Nickname & profile picture buttons */
-#nicknameBtn, #uploadPicBtn {
-  position: absolute;
-  left: 10px;
-  background: #5865f2;
-  border: none;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-#nicknameBtn:hover, #uploadPicBtn:hover { background: #4752c4; }
-#nicknameBtn { bottom: 40px; }
-#uploadPicBtn { bottom: 10px; }
+.control-btn:hover { background: #4752c4; }
 </style>
 </head>
 <body>
@@ -240,20 +205,24 @@ body {
       Lobby <span id="vc-Lobby" class="voice-status"></span>
     </div>
     <div id="users-Lobby" class="voice-users"></div>
-
     <div class="voice-channel" onclick="toggleVoiceChannel('Music')">
       Music <span id="vc-Music" class="voice-status"></span>
     </div>
     <div id="users-Music" class="voice-users"></div>
-
     <div class="voice-channel" onclick="toggleVoiceChannel('Gaming')">
       Gaming <span id="vc-Gaming" class="voice-status"></span>
     </div>
     <div id="users-Gaming" class="voice-users"></div>
   </div>
 
-  <button id="nicknameBtn" onclick="changeNickname()">Change Name</button>
-  <button id="uploadPicBtn" onclick="uploadProfilePic()">Upload Picture</button>
+  <!-- Control buttons -->
+  <div id="controlButtons">
+    <button class="control-btn" id="nicknameBtn" onclick="changeNickname()">Change Name</button>
+    <button class="control-btn" id="uploadPicBtn" onclick="uploadProfilePic()">Upload Picture</button>
+    <button class="control-btn" id="micBtn" onclick="toggleMic()">Mute Mic</button>
+    <button class="control-btn" id="deafenBtn" onclick="toggleDeafen()">Deafen</button>
+    <button class="control-btn" id="screenBtn" onclick="startScreenShare()">Share Screen</button>
+  </div>
 </div>
 
 <div class="main">
@@ -261,7 +230,6 @@ body {
     <span id="roomTitle">redroom</span>
   </div>
   <div id="messages"></div>
-
   <form id="messageForm" onsubmit="sendMessage(event)">
     <input id="msgInput" autocomplete="off" placeholder="Type your message..." />
     <button id="sendBtn">Send</button>
@@ -275,12 +243,14 @@ const socket = io();
 
 // --- NICKNAME & PROFILE ---
 let username = localStorage.getItem('nickname') || prompt("Enter your nickname") || "Anonymous";
-let profilePic = localStorage.getItem('profilePic') || "default.png"; // use default.png if empty
+let profilePic = localStorage.getItem('profilePic') || "default.png"; 
 localStorage.setItem('nickname', username);
 localStorage.setItem('profilePic', profilePic);
 
 // --- TEXT CHAT STORAGE ---
-let roomMessages = {}; // store messages per room
+let roomMessages = {}; 
+let currentRoom = 'redroom';
+joinRoom(currentRoom);
 
 function changeNickname() {
   const newName = prompt("Enter new nickname", username);
@@ -289,21 +259,15 @@ function changeNickname() {
 
 function uploadProfilePic() {
   const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
+  input.type = 'file'; input.accept = 'image/*';
   input.onchange = e => {
-    const file = e.target.files[0];
-    if(!file) return;
+    const file = e.target.files[0]; if(!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       profilePic = reader.result;
       localStorage.setItem('profilePic', profilePic);
-      // Update self messages
       document.querySelectorAll('.message.self img.profile').forEach(img=>img.src=profilePic);
-      // Update voice channel immediately
-      if(currentVoiceChannel){
-        socket.emit('update-profile',{username, profilePic, channel:currentVoiceChannel});
-      }
+      if(currentVoiceChannel){ socket.emit('update-profile',{username, profilePic, channel:currentVoiceChannel}); }
       alert("Profile picture updated!");
     };
     reader.readAsDataURL(file);
@@ -312,49 +276,30 @@ function uploadProfilePic() {
 }
 
 // --- TEXT CHAT ---
-let currentRoom = 'redroom';
-joinRoom(currentRoom);
-
 function joinRoom(room){
   document.querySelectorAll('.room').forEach(r=>r.classList.remove('active'));
   document.querySelector(`.room[onclick="joinRoom('${room}')"]`).classList.add('active');
   document.getElementById('roomTitle').innerText=room;
   currentRoom=room;
-
-  // load messages for room
   const messagesDiv = document.getElementById('messages');
   messagesDiv.innerHTML='';
   if(roomMessages[room]){
-    roomMessages[room].forEach(m=>{
-      addMessage(m.username, m.text, m.profilePic, m.username===username, false);
-    });
+    roomMessages[room].forEach(m=>addMessage(m.username, m.text, m.profilePic, m.username===username, false));
   }
-
   socket.emit('join-room',{room, username, profilePic});
 }
 
 function sendMessage(e){
   e.preventDefault();
   const input=document.getElementById('msgInput');
-  const text=input.value.trim();
-  if(!text) return;
+  const text=input.value.trim(); if(!text) return;
   const messageData = {room: currentRoom, text, username, profilePic};
   socket.emit('message', messageData);
   input.value='';
-
-  // locally add message
-  if(!roomMessages[currentRoom]) roomMessages[currentRoom] = [];
+  if(!roomMessages[currentRoom]) roomMessages[currentRoom]=[];
   roomMessages[currentRoom].push(messageData);
   addMessage(username, text, profilePic, true, false);
 }
-
-socket.on('load-messages', msgs=>{
-  if(!roomMessages[currentRoom]) roomMessages[currentRoom]=[];
-  msgs.forEach(m=>{
-    roomMessages[currentRoom].push(m);
-    addMessage(m.username, m.text, m.profilePic, m.username===username, false);
-  });
-});
 
 socket.on('message', m=>{
   if(!roomMessages[m.room]) roomMessages[m.room]=[];
@@ -365,155 +310,111 @@ socket.on('message', m=>{
 function addMessage(sender,text,pic,isSelf,prepend){
   const messages=document.getElementById('messages');
   const div=document.createElement('div');
-  div.classList.add('message');
-  if(isSelf) div.classList.add('self');
+  div.classList.add('message'); if(isSelf) div.classList.add('self');
   const time=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
   div.innerHTML=`<img class="profile" src="${pic||'default.png'}" /><div><div class="meta">${sender} • ${time}</div>${text}</div>`;
-  if(prepend) messages.prepend(div);
-  else messages.appendChild(div);
+  if(prepend) messages.prepend(div); else messages.appendChild(div);
   messages.scrollTop=messages.scrollHeight;
 }
 
 // --- VOICE CHAT ---
-let localStream = null;
-let currentVoiceChannel = null;
-let peers = {};
-let voiceUsers = {};
-let speaking = {};
+let localStream=null, currentVoiceChannel=null, peers={}, voiceUsers={}, speaking={}, micMuted=false, deafened=false, screenStream=null;
 
-// Join/leave voice channel
-async function toggleVoiceChannel(channelName) {
-  if (currentVoiceChannel === channelName) {
-    leaveVoiceChannel();
-    return;
-  }
-
-  if (currentVoiceChannel) leaveVoiceChannel();
-
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+async function toggleVoiceChannel(channelName){
+  if(currentVoiceChannel===channelName){ leaveVoiceChannel(); return; }
+  if(currentVoiceChannel) leaveVoiceChannel();
+  try{
+    localStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,sampleRate:48000,channelCount:2},video:false});
     currentVoiceChannel = channelName;
-
-    document.querySelectorAll('.voice-channel').forEach(vc => vc.classList.remove('active'));
-    document.querySelector(`.voice-channel[onclick="toggleVoiceChannel('${channelName}')"]`).classList.add('active');
-    document.getElementById(`vc-${channelName}`).innerText = "🎤";
-
-    socket.emit('voice-join', { channel: channelName, username, profilePic });
-
-  } catch (err) {
-    alert("Microphone access denied.");
-  }
+    document.querySelectorAll('.voice-channel').forEach(vc=>vc.classList.remove('active'));
+    document.querySelector(`.voice-channel[onclick="toggleVoiceChannel('${channelName}')"]`)?.classList.add('active');
+    document.getElementById(`vc-${channelName}`).innerText="🎤";
+    socket.emit('voice-join',{channel:channelName, username, profilePic});
+    initPeers();
+  }catch(e){ alert("Microphone access denied."); }
 }
 
-// Update voice user list in sidebar
-function updateVoiceUsers(channel) {
-  const container = document.getElementById(`users-${channel}`);
-  container.innerHTML = '';
-  (voiceUsers[channel] || []).forEach(u => {
-    const div = document.createElement('div');
-    div.classList.add('voice-user');
-    if (speaking[u.id]) div.classList.add('speaking');
-    div.innerHTML = `<img src="${u.profilePic || 'default.png'}" /> ${u.username}`;
+function updateVoiceUsers(channel){
+  const container=document.getElementById(`users-${channel}`);
+  container.innerHTML='';
+  (voiceUsers[channel]||[]).forEach(u=>{
+    const div=document.createElement('div'); div.classList.add('voice-user');
+    if(speaking[u.id]) div.classList.add('speaking');
+    div.innerHTML=`<img src="${u.profilePic||'default.png'}"/> ${u.username}`;
     container.appendChild(div);
   });
 }
 
-// Handle when server sends all users in channel
-socket.on('voice-users', data => {
-  voiceUsers[data.channel] = data.users;
+socket.on('voice-users', data=>{
+  voiceUsers[data.channel]=data.users;
   updateVoiceUsers(data.channel);
-
-  // For all users in this channel, create peer connections if not already
-  if (data.channel === currentVoiceChannel && localStream) {
-    data.users.forEach(u => {
-      if (u.id !== socket.id && !peers[u.id]) {
-        createPeer(u.id, false);
-      }
-    });
-  }
+  if(currentVoiceChannel===data.channel) initPeers();
 });
 
-// When a new user joins
-socket.on('new-peer', peerId => {
-  if (!peers[peerId] && localStream) createPeer(peerId, true);
-});
+socket.on('new-peer', peerId=>{ if(!peers[peerId]) createPeer(peerId,true); });
+socket.on('signal', ({from,signal})=>{ peers[from]?.signal(signal); });
+socket.on('peer-left', peerId=>{ if(peers[peerId]){ peers[peerId].destroy(); delete peers[peerId]; } delete speaking[peerId]; if(currentVoiceChannel) updateVoiceUsers(currentVoiceChannel); });
 
-// Handle signaling data
-socket.on('signal', ({ from, signal }) => {
-  if (peers[from]) peers[from].signal(signal);
-});
-
-// When a peer leaves
-socket.on('peer-left', peerId => {
-  if (peers[peerId]) peers[peerId].destroy();
-  delete peers[peerId];
-  delete speaking[peerId];
-  if (currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
-});
-
-// --- Peer creation ---
-function createPeer(peerId, initiator) {
-  const peer = new SimplePeer({ initiator, trickle: false, stream: localStream });
-
-  peer.on('signal', signal => {
-    socket.emit('signal', { to: peerId, signal });
-  });
-
-  peer.on('stream', stream => {
-    playRemoteStream(stream, peerId);
-  });
-
-  peer.on('close', () => {
-    delete peers[peerId];
-    delete speaking[peerId];
-    if (currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
-  });
-
-  peers[peerId] = peer;
+function initPeers(){
+  if(!currentVoiceChannel) return;
+  const users=voiceUsers[currentVoiceChannel]||[];
+  users.forEach(u=>{ if(u.id!==socket.id && !peers[u.id]) createPeer(u.id,false); });
 }
 
-// --- Play remote stream and detect speaking ---
-function playRemoteStream(stream, peerId) {
-  let audio = document.getElementById(`audio-${peerId}`);
-  if (!audio) {
-    audio = document.createElement('audio');
-    audio.id = `audio-${peerId}`;
-    audio.autoplay = true;
-    audio.srcObject = stream;
+function createPeer(peerId,initiator){
+  const peer=new SimplePeer({initiator,stream:localStream,trickle:false});
+  peer.on('signal', sig=>socket.emit('signal',{to:peerId,signal:sig}));
+  peer.on('stream', stream=>playRemoteStream(stream,peerId));
+  peers[peerId]=peer;
+}
+
+function playRemoteStream(stream,peerId){
+  let audio=document.getElementById(`audio-${peerId}`);
+  if(!audio){
+    audio=document.createElement('audio'); audio.id=`audio-${peerId}`; audio.autoplay=true; audio.srcObject=stream; audio.muted=deafened;
     document.body.appendChild(audio);
-
-    const context = new AudioContext();
-    const src = context.createMediaStreamSource(stream);
-    const analyser = context.createAnalyser();
-    src.connect(analyser);
-    analyser.fftSize = 256;
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-    function checkSpeaking() {
+    const context=new AudioContext(); const src=context.createMediaStreamSource(stream);
+    const analyser=context.createAnalyser(); src.connect(analyser); analyser.fftSize=256;
+    const dataArray=new Uint8Array(analyser.frequencyBinCount);
+    function checkSpeaking(){
       analyser.getByteFrequencyData(dataArray);
-      const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-      speaking[peerId] = volume > 20;
-      if (currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
+      const volume=dataArray.reduce((a,b)=>a+b,0)/dataArray.length;
+      speaking[peerId]=volume>20;
+      if(currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
       requestAnimationFrame(checkSpeaking);
-    }
-    checkSpeaking();
+    } checkSpeaking();
   }
 }
 
-// Leave voice channel
-function leaveVoiceChannel() {
-  if (localStream) localStream.getTracks().forEach(t => t.stop());
-  for (let id in peers) peers[id].destroy();
-  peers = {};
-  speaking = {};
-  if (currentVoiceChannel) {
-    socket.emit('voice-leave', { channel: currentVoiceChannel, username });
-    document.getElementById(`vc-${currentVoiceChannel}`).innerText = "";
-    voiceUsers[currentVoiceChannel] = [];
-    updateVoiceUsers(currentVoiceChannel);
-    currentVoiceChannel = null;
+function leaveVoiceChannel(){
+  if(localStream) localStream.getTracks().forEach(t=>t.stop());
+  if(screenStream) screenStream.getTracks().forEach(t=>t.stop()); screenStream=null;
+  for(let id in peers) peers[id].destroy(); peers={}; speaking={};
+  if(currentVoiceChannel){
+    socket.emit('voice-leave',{channel:currentVoiceChannel,username});
+    document.getElementById(`vc-${currentVoiceChannel}`).innerText="";
+    voiceUsers[currentVoiceChannel]=[]; updateVoiceUsers(currentVoiceChannel);
+    currentVoiceChannel=null;
   }
 }
+
+// --- Mute / Deafen ---
+function toggleMic(){ if(!localStream) return; micMuted=!micMuted; localStream.getAudioTracks().forEach(t=>t.enabled=!micMuted); document.getElementById('micBtn').innerText=micMuted?'Unmute Mic':'Mute Mic'; }
+function toggleDeafen(){ deafened=!deafened; document.querySelectorAll('audio').forEach(a=>a.muted=deafened); document.getElementById('deafenBtn').innerText=deafened?'Undeafen':'Deafen'; }
+
+// --- Screen Share ---
+async function startScreenShare(){
+  if(!currentVoiceChannel) return alert("Join a voice channel first!");
+  try{
+    screenStream = await navigator.mediaDevices.getDisplayMedia({video:true});
+    for(let id in peers){
+      const sender = peers[id].streams[0].getTracks().find(t=>t.kind==='video');
+      if(sender) peers[id].replaceTrack(sender,screenStream.getVideoTracks()[0],peers[id].streams[0]);
+    }
+    screenStream.getVideoTracks()[0].onended=stopScreenShare;
+  }catch(e){console.log(e);}
+}
+function stopScreenShare(){ if(screenStream){ screenStream.getTracks().forEach(t=>t.stop()); screenStream=null; } }
 </script>
 </body>
 </html>
