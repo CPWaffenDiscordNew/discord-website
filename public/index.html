@@ -275,7 +275,7 @@ const socket = io();
 
 // --- NICKNAME & PROFILE ---
 let username = localStorage.getItem('nickname') || prompt("Enter your nickname") || "Anonymous";
-let profilePic = localStorage.getItem('profilePic') || "";
+let profilePic = localStorage.getItem('profilePic') || "default.png";
 localStorage.setItem('nickname', username);
 localStorage.setItem('profilePic', profilePic);
 
@@ -377,40 +377,43 @@ function updateVoiceUsers(channel){
   });
 }
 
-// --- WebRTC ---
-// Helper to create a peer connection
-function createPeer(peerId, initiator) {
-  const peer = new SimplePeer({ initiator, trickle: false, stream: localStream });
-  peer.on('signal', sig => socket.emit('signal', { to: peerId, signal: sig }));
-  peer.on('stream', stream => playStream(stream, peerId));
-  peers[peerId] = peer;
-}
-
-// Handle new voice users
-socket.on('voice-users', data => {
-  voiceUsers[data.channel] = data.users;
+// WebRTC improved to handle joins/leaves dynamically
+socket.on('voice-users', data=>{
+  voiceUsers[data.channel]=data.users;
   updateVoiceUsers(data.channel);
 
-  if(data.channel === currentVoiceChannel){
-    data.users.forEach(u => {
-      if(u.id !== socket.id && !peers[u.id]){
-        createPeer(u.id, true); // initiator = true
+  if(data.channel===currentVoiceChannel){
+    data.users.forEach(u=>{
+      if(u.id && u.id!==socket.id && !peers[u.id]){
+        const peer=new SimplePeer({initiator:true,trickle:false,stream:localStream});
+        peer.on('signal', sig=>socket.emit('signal',{to:u.id, signal:sig}));
+        peer.on('stream', s=>playStream(s,u.id));
+        peers[u.id]=peer;
       }
     });
   }
 });
 
-socket.on('new-peer', peerId => {
-  if(!peers[peerId]) createPeer(peerId, false);
+socket.on('new-peer', peerId=>{
+  if(peers[peerId]) return;
+  const peer=new SimplePeer({initiator:false,trickle:false,stream:localStream});
+  peer.on('signal', sig=>socket.emit('signal',{to:peerId, signal:sig}));
+  peer.on('stream', s=>playStream(s,peerId));
+  peers[peerId]=peer;
 });
 
-socket.on('signal', ({from, signal}) => {
-  if(!peers[from]) createPeer(from, true);
+socket.on('signal', ({from, signal})=>{
+  if(!peers[from]){
+    const peer=new SimplePeer({initiator:true,trickle:false,stream:localStream});
+    peer.on('signal', sig=>socket.emit('signal',{to:from, signal:sig}));
+    peer.on('stream', s=>playStream(s, from));
+    peers[from]=peer;
+  }
   peers[from].signal(signal);
 });
 
-socket.on('peer-left', peerId => {
-  if(peers[peerId]) { peers[peerId].destroy(); delete peers[peerId]; }
+socket.on('peer-left', peerId=>{
+  if(peers[peerId]){ peers[peerId].destroy(); delete peers[peerId]; }
   delete speaking[peerId];
   if(currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
 });
