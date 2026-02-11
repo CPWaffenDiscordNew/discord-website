@@ -73,6 +73,29 @@ body {
   color: #fff;
 }
 
+/* Voice channel user list */
+.voice-users {
+  padding-left: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 5px;
+}
+
+.voice-user {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #b9bbbe;
+}
+
+.voice-user img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
 /* Main chat area */
 .main {
   flex: 1;
@@ -110,7 +133,7 @@ body {
   word-wrap: break-word;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
 .message.self {
@@ -126,8 +149,8 @@ body {
 }
 
 .message img.profile {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
 }
 
@@ -202,9 +225,20 @@ body {
 
   <div class="section-title">VOICE CHANNELS</div>
   <div id="voiceChannels">
-    <div class="voice-channel" onclick="toggleVoiceChannel('Lobby')">Lobby <span id="vc-Lobby" class="voice-status"></span></div>
-    <div class="voice-channel" onclick="toggleVoiceChannel('Music')">Music <span id="vc-Music" class="voice-status"></span></div>
-    <div class="voice-channel" onclick="toggleVoiceChannel('Gaming')">Gaming <span id="vc-Gaming" class="voice-status"></span></div>
+    <div class="voice-channel" onclick="toggleVoiceChannel('Lobby')">
+      Lobby <span id="vc-Lobby" class="voice-status"></span>
+    </div>
+    <div id="users-Lobby" class="voice-users"></div>
+
+    <div class="voice-channel" onclick="toggleVoiceChannel('Music')">
+      Music <span id="vc-Music" class="voice-status"></span>
+    </div>
+    <div id="users-Music" class="voice-users"></div>
+
+    <div class="voice-channel" onclick="toggleVoiceChannel('Gaming')">
+      Gaming <span id="vc-Gaming" class="voice-status"></span>
+    </div>
+    <div id="users-Gaming" class="voice-users"></div>
   </div>
 
   <button id="nicknameBtn" onclick="changeNickname()">Change Name</button>
@@ -249,7 +283,7 @@ function joinRoom(room) {
   document.getElementById('roomTitle').innerText = room;
   currentRoom = room;
   document.getElementById('messages').innerHTML = '';
-  socket.emit('join-room', { room, username });
+  socket.emit('join-room', { room, username, profilePic });
 }
 
 function sendMessage(e) {
@@ -281,6 +315,7 @@ function addMessage(sender, text, pic, isSelf) {
 let localStream = null;
 let currentVoiceChannel = null;
 let peers = {};
+let voiceUsers = {}; // {channelName: [{username, profilePic}...]}
 
 async function toggleVoiceChannel(channelName) {
   if(currentVoiceChannel === channelName) { leaveVoiceChannel(); return; }
@@ -292,9 +327,27 @@ async function toggleVoiceChannel(channelName) {
     document.querySelectorAll('.voice-channel').forEach(vc=>vc.classList.remove('active'));
     document.querySelector(`.voice-channel[onclick="toggleVoiceChannel('${channelName}')"]`).classList.add('active');
     document.getElementById(`vc-${channelName}`).innerText="🎤";
-    socket.emit('voice-join',{channel:channelName, username});
+    socket.emit('voice-join',{channel:channelName, username, profilePic});
   } catch(e){ alert("Microphone access denied."); }
 }
+
+// Update users under voice channels
+function updateVoiceUsers(channel) {
+  const container = document.getElementById(`users-${channel}`);
+  container.innerHTML = '';
+  (voiceUsers[channel]||[]).forEach(u=>{
+    const div = document.createElement('div');
+    div.classList.add('voice-user');
+    div.innerHTML = `<img src="${u.profilePic || 'Turkey.png'}" /> ${u.username}`;
+    container.appendChild(div);
+  });
+}
+
+// Socket events for voice users
+socket.on('voice-users', data=>{
+  voiceUsers[data.channel] = data.users;
+  updateVoiceUsers(data.channel);
+});
 
 socket.on('new-peer', peerId=>{
   if(peers[peerId]) return;
@@ -325,6 +378,8 @@ function leaveVoiceChannel(){
   if(currentVoiceChannel){
     socket.emit('voice-leave',{channel:currentVoiceChannel, username});
     document.getElementById(`vc-${currentVoiceChannel}`).innerText="";
+    voiceUsers[currentVoiceChannel]=[];
+    updateVoiceUsers(currentVoiceChannel);
     currentVoiceChannel=null;
   }
 }
@@ -340,6 +395,5 @@ function playStream(stream, peerId){
   audio.srcObject = stream;
 }
 </script>
-
 </body>
 </html>
