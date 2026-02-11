@@ -14,40 +14,206 @@ body {
   display: flex;
   height: 100vh;
 }
+
 /* Sidebar */
-.sidebar { width: 250px; background: #2f3136; display: flex; flex-direction: column; padding: 20px 10px; position: relative; }
-.sidebar-header { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
-.sidebar-header img { width: 32px; height: 32px; margin-right: 10px; }
-.sidebar-header h2 { margin: 0; font-size: 22px; color: #fff; }
-.section-title { margin: 15px 0 5px 10px; font-weight: bold; color: #b9bbbe; }
-.room, .voice-channel { padding: 10px 15px; margin: 5px 0; border-radius: 5px; cursor: pointer; background: #202225; transition: 0.2s; font-family: 'Times New Roman', serif; display: flex; justify-content: space-between; align-items: center; }
-.room:hover, .voice-channel:hover { background: #5865f2; color: #fff; }
-.active { background: #5865f2; color: #fff; }
+.sidebar {
+  width: 250px;
+  background: #2f3136;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 10px;
+  position: relative;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.sidebar-header img {
+  width: 32px;
+  height: 32px;
+  margin-right: 10px;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #fff;
+}
+
+.section-title {
+  margin: 15px 0 5px 10px;
+  font-weight: bold;
+  color: #b9bbbe;
+}
+
+.room, .voice-channel {
+  padding: 10px 15px;
+  margin: 5px 0;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #202225;
+  transition: 0.2s;
+  font-family: 'Times New Roman', serif;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.room:hover, .voice-channel:hover {
+  background: #5865f2;
+  color: #fff;
+}
+
+.active {
+  background: #5865f2;
+  color: #fff;
+}
+
 /* Voice channel user list */
-.voice-users { padding-left: 15px; display: flex; flex-direction: column; gap: 3px; margin-bottom: 5px; }
-.voice-user { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #b9bbbe; transition: 0.2s; }
+.voice-users {
+  padding-left: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 5px;
+}
+
+.voice-user {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #b9bbbe;
+  transition: 0.2s;
+}
+
 .voice-user.speaking { color: #43b581; font-weight: bold; }
-.voice-user img { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; }
+
+.voice-user img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
 .voice-user.speaking img { border-color: #43b581; }
+
 /* Main chat area */
-.main { flex: 1; display: flex; flex-direction: column; padding: 20px; background: #36393f; }
-.chat-header { font-size: 20px; margin-bottom: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-#messages { flex: 1; overflow-y: auto; padding: 10px; background: #2f3136; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; }
-#messages::-webkit-scrollbar { width: 8px; }
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: #36393f;
+}
+
+.chat-header {
+  font-size: 20px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: #2f3136;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Modern scrollbar */
+#messages::-webkit-scrollbar {
+  width: 8px;
+}
 #messages::-webkit-scrollbar-track { background: #2f3136; border-radius: 4px; }
 #messages::-webkit-scrollbar-thumb { background-color: #202225; border-radius: 4px; }
 #messages::-webkit-scrollbar-thumb:hover { background-color: #5865f2; }
-.message { max-width: 70%; padding: 8px 12px; border-radius: 10px; background: #40444b; word-wrap: break-word; display: flex; align-items: center; gap: 8px; }
-.message.self { align-self: flex-end; background: #7289da; color: #fff; }
-.message .meta { font-size: 12px; color: #b9bbbe; margin-bottom: 2px; }
-.message img.profile { width: 25px; height: 25px; border-radius: 50%; }
-#messageForm { display: flex; margin-top: 10px; }
-#msgInput { flex: 1; padding: 10px 15px; border-radius: 20px 0 0 20px; border: none; outline: none; font-size: 14px; }
-#sendBtn { padding: 10px 20px; background: #5865f2; border: none; border-radius: 0 20px 20px 0; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; }
+
+.message {
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #40444b;
+  word-wrap: break-word;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message.self {
+  align-self: flex-end;
+  background: #7289da;
+  color: #fff;
+}
+
+.message .meta {
+  font-size: 12px;
+  color: #b9bbbe;
+  margin-bottom: 2px;
+}
+
+.message img.profile {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+}
+
+#messageForm {
+  display: flex;
+  margin-top: 10px;
+}
+
+#msgInput {
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 20px 0 0 20px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+#sendBtn {
+  padding: 10px 20px;
+  background: #5865f2;
+  border: none;
+  border-radius: 0 20px 20px 0;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
 #sendBtn:hover { background: #4752c4; }
-.voice-status { font-size: 12px; color: #43b581; margin-left: 10px; }
+
+.voice-status {
+  font-size: 12px;
+  color: #43b581;
+  margin-left: 10px;
+}
+
 /* Nickname & profile picture buttons */
-#nicknameBtn, #uploadPicBtn { position: absolute; left: 10px; background: #5865f2; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+#nicknameBtn, #uploadPicBtn {
+  position: absolute;
+  left: 10px;
+  background: #5865f2;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
 #nicknameBtn:hover, #uploadPicBtn:hover { background: #4752c4; }
 #nicknameBtn { bottom: 40px; }
 #uploadPicBtn { bottom: 10px; }
@@ -57,15 +223,15 @@ body {
 
 <div class="sidebar">
   <div class="sidebar-header">
-    <img src="Turkey.png" alt="TurkeyTown Icon" />
+    <img src="Turkey.png" alt="Turkey Icon" />
     <h2>TurkeyTown</h2>
   </div>
 
   <div class="section-title">TEXT ROOMS</div>
   <div id="rooms">
-    <div class="room active" onclick="joinRoom('𝔯𝔢𝔡𝔯𝔬𝔬𝔪')">𝔯𝔢𝔡𝔯𝔬𝔬𝔪</div>
-    <div class="room" onclick="joinRoom('𝔤𝔞𝔪𝔦𝔫𝔤')">𝔤𝔞𝔪𝔦𝔫𝔤</div>
-    <div class="room" onclick="joinRoom('𝔦𝔯𝔩')">𝔦𝔯𝔩</div>
+    <div class="room active" onclick="joinRoom('redroom')">redroom</div>
+    <div class="room" onclick="joinRoom('gaming')">gaming</div>
+    <div class="room" onclick="joinRoom('irl')">irl</div>
   </div>
 
   <div class="section-title">VOICE CHANNELS</div>
@@ -92,7 +258,7 @@ body {
 
 <div class="main">
   <div class="chat-header">
-    <span id="roomTitle">𝔯𝔢𝔡𝔯𝔬𝔬𝔪</span>
+    <span id="roomTitle">redroom</span>
   </div>
   <div id="messages"></div>
 
@@ -109,9 +275,12 @@ const socket = io();
 
 // --- NICKNAME & PROFILE ---
 let username = localStorage.getItem('nickname') || prompt("Enter your nickname") || "Anonymous";
-let profilePic = localStorage.getItem('profilePic') || "";
+let profilePic = localStorage.getItem('profilePic') || "default.png"; // use default.png if empty
 localStorage.setItem('nickname', username);
 localStorage.setItem('profilePic', profilePic);
+
+// --- TEXT CHAT STORAGE ---
+let roomMessages = {}; // store messages per room
 
 function changeNickname() {
   const newName = prompt("Enter new nickname", username);
@@ -129,7 +298,9 @@ function uploadProfilePic() {
     reader.onload = () => {
       profilePic = reader.result;
       localStorage.setItem('profilePic', profilePic);
+      // Update self messages
       document.querySelectorAll('.message.self img.profile').forEach(img=>img.src=profilePic);
+      // Update voice channel immediately
       if(currentVoiceChannel){
         socket.emit('update-profile',{username, profilePic, channel:currentVoiceChannel});
       }
@@ -141,8 +312,7 @@ function uploadProfilePic() {
 }
 
 // --- TEXT CHAT ---
-let currentRoom = '𝔯𝔢𝔡𝔯𝔬𝔬𝔪';
-let chatHistory = {}; // Store messages per room
+let currentRoom = 'redroom';
 joinRoom(currentRoom);
 
 function joinRoom(room){
@@ -151,9 +321,14 @@ function joinRoom(room){
   document.getElementById('roomTitle').innerText=room;
   currentRoom=room;
 
-  const messages = document.getElementById('messages');
-  messages.innerHTML = '';
-  (chatHistory[room] || []).forEach(m=>addMessage(m.username,m.text,m.profilePic,m.username===username));
+  // load messages for room
+  const messagesDiv = document.getElementById('messages');
+  messagesDiv.innerHTML='';
+  if(roomMessages[room]){
+    roomMessages[room].forEach(m=>{
+      addMessage(m.username, m.text, m.profilePic, m.username===username, false);
+    });
+  }
 
   socket.emit('join-room',{room, username, profilePic});
 }
@@ -163,28 +338,39 @@ function sendMessage(e){
   const input=document.getElementById('msgInput');
   const text=input.value.trim();
   if(!text) return;
-  socket.emit('message',{room:currentRoom,text,username,profilePic});
+  const messageData = {room: currentRoom, text, username, profilePic};
+  socket.emit('message', messageData);
   input.value='';
+
+  // locally add message
+  if(!roomMessages[currentRoom]) roomMessages[currentRoom] = [];
+  roomMessages[currentRoom].push(messageData);
+  addMessage(username, text, profilePic, true, false);
 }
 
 socket.on('load-messages', msgs=>{
-  chatHistory[currentRoom] = msgs;
-  msgs.forEach(m=>addMessage(m.username,m.text,m.profilePic,m.username===username));
-});
-socket.on('message', m=>{
-  if(!chatHistory[m.room]) chatHistory[m.room]=[];
-  chatHistory[m.room].push(m);
-  addMessage(m.username,m.text,m.profilePic,m.username===username);
+  if(!roomMessages[currentRoom]) roomMessages[currentRoom]=[];
+  msgs.forEach(m=>{
+    roomMessages[currentRoom].push(m);
+    addMessage(m.username, m.text, m.profilePic, m.username===username, false);
+  });
 });
 
-function addMessage(sender,text,pic,isSelf){
+socket.on('message', m=>{
+  if(!roomMessages[m.room]) roomMessages[m.room]=[];
+  roomMessages[m.room].push(m);
+  if(m.room===currentRoom) addMessage(m.username, m.text, m.profilePic, m.username===username, false);
+});
+
+function addMessage(sender,text,pic,isSelf,prepend){
   const messages=document.getElementById('messages');
   const div=document.createElement('div');
   div.classList.add('message');
   if(isSelf) div.classList.add('self');
   const time=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
   div.innerHTML=`<img class="profile" src="${pic||'default.png'}" /><div><div class="meta">${sender} • ${time}</div>${text}</div>`;
-  messages.appendChild(div);
+  if(prepend) messages.prepend(div);
+  else messages.appendChild(div);
   messages.scrollTop=messages.scrollHeight;
 }
 
@@ -194,125 +380,138 @@ let currentVoiceChannel = null;
 let peers = {};
 let voiceUsers = {};
 let speaking = {};
-let localSpeaking = false;
 
+// Join/leave voice channel
 async function toggleVoiceChannel(channelName) {
-  if(currentVoiceChannel===channelName){ leaveVoiceChannel(); return; }
-  if(currentVoiceChannel) leaveVoiceChannel();
-  try{
-    localStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-    currentVoiceChannel = channelName;
-    document.querySelectorAll('.voice-channel').forEach(vc=>vc.classList.remove('active'));
-    document.querySelector(`.voice-channel[onclick="toggleVoiceChannel('${channelName}')"]`).classList.add('active');
-    document.getElementById(`vc-${channelName}`).innerText="🎤";
-    socket.emit('voice-join',{channel:channelName, username, profilePic});
-    startLocalSpeakingDetection(localStream);
-  }catch(e){alert("Microphone access denied.");}
-}
-
-function startLocalSpeakingDetection(stream){
-  const context = new AudioContext();
-  const source = context.createMediaStreamSource(stream);
-  const analyser = context.createAnalyser();
-  analyser.fftSize = 256;
-  source.connect(analyser);
-  const dataArray = new Uint8Array(analyser.frequencyBinCount);
-  function detectSpeaking(){
-    analyser.getByteFrequencyData(dataArray);
-    const volume = dataArray.reduce((a,b)=>a+b,0)/dataArray.length;
-    const prev = localSpeaking;
-    localSpeaking = volume>20;
-    if(localSpeaking!==prev && currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
-    requestAnimationFrame(detectSpeaking);
+  if (currentVoiceChannel === channelName) {
+    leaveVoiceChannel();
+    return;
   }
-  detectSpeaking();
+
+  if (currentVoiceChannel) leaveVoiceChannel();
+
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    currentVoiceChannel = channelName;
+
+    document.querySelectorAll('.voice-channel').forEach(vc => vc.classList.remove('active'));
+    document.querySelector(`.voice-channel[onclick="toggleVoiceChannel('${channelName}')"]`).classList.add('active');
+    document.getElementById(`vc-${channelName}`).innerText = "🎤";
+
+    socket.emit('voice-join', { channel: channelName, username, profilePic });
+
+  } catch (err) {
+    alert("Microphone access denied.");
+  }
 }
 
-function updateVoiceUsers(channel){
+// Update voice user list in sidebar
+function updateVoiceUsers(channel) {
   const container = document.getElementById(`users-${channel}`);
-  container.innerHTML='';
-  (voiceUsers[channel]||[]).forEach(u=>{
+  container.innerHTML = '';
+  (voiceUsers[channel] || []).forEach(u => {
     const div = document.createElement('div');
     div.classList.add('voice-user');
-    if((speaking[u.id]||false) || (u.id===socket.id && localSpeaking)) div.classList.add('speaking');
-    div.innerHTML=`<img src="${u.profilePic||'default.png'}" /> ${u.username}`;
+    if (speaking[u.id]) div.classList.add('speaking');
+    div.innerHTML = `<img src="${u.profilePic || 'default.png'}" /> ${u.username}`;
     container.appendChild(div);
   });
 }
 
-// WebRTC
-socket.on('voice-users', data=>{
-  voiceUsers[data.channel]=data.users;
+// Handle when server sends all users in channel
+socket.on('voice-users', data => {
+  voiceUsers[data.channel] = data.users;
   updateVoiceUsers(data.channel);
 
-  if(data.channel===currentVoiceChannel){
-    data.users.forEach(u=>{
-      if(u.id!==socket.id && !peers[u.id]){
-        const peer = new SimplePeer({initiator:true,trickle:false,stream:localStream});
-        peer.on('signal',sig=>socket.emit('signal',{to:u.id, signal:sig}));
-        peer.on('stream',s=>playStream(s,u.id));
-        peers[u.id]=peer;
+  // For all users in this channel, create peer connections if not already
+  if (data.channel === currentVoiceChannel && localStream) {
+    data.users.forEach(u => {
+      if (u.id !== socket.id && !peers[u.id]) {
+        createPeer(u.id, false);
       }
     });
   }
 });
 
-socket.on('signal', ({from, signal})=>{
-  if(!peers[from]){
-    const peer = new SimplePeer({initiator:false,trickle:false,stream:localStream});
-    peer.on('signal',sig=>socket.emit('signal',{to:from, signal:sig}));
-    peer.on('stream',s=>playStream(s,from));
-    peers[from]=peer;
-  }
-  peers[from].signal(signal);
+// When a new user joins
+socket.on('new-peer', peerId => {
+  if (!peers[peerId] && localStream) createPeer(peerId, true);
 });
 
-socket.on('peer-left', peerId=>{
-  if(peers[peerId]){ peers[peerId].destroy(); delete peers[peerId]; }
+// Handle signaling data
+socket.on('signal', ({ from, signal }) => {
+  if (peers[from]) peers[from].signal(signal);
+});
+
+// When a peer leaves
+socket.on('peer-left', peerId => {
+  if (peers[peerId]) peers[peerId].destroy();
+  delete peers[peerId];
   delete speaking[peerId];
-  if(currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
+  if (currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
 });
 
-function playStream(stream, peerId){
-  let audio=document.getElementById(`audio-${peerId}`);
-  if(!audio){
-    audio=document.createElement('audio');
-    audio.id=`audio-${peerId}`;
-    audio.autoplay=true;
-    audio.srcObject=stream;
+// --- Peer creation ---
+function createPeer(peerId, initiator) {
+  const peer = new SimplePeer({ initiator, trickle: false, stream: localStream });
+
+  peer.on('signal', signal => {
+    socket.emit('signal', { to: peerId, signal });
+  });
+
+  peer.on('stream', stream => {
+    playRemoteStream(stream, peerId);
+  });
+
+  peer.on('close', () => {
+    delete peers[peerId];
+    delete speaking[peerId];
+    if (currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
+  });
+
+  peers[peerId] = peer;
+}
+
+// --- Play remote stream and detect speaking ---
+function playRemoteStream(stream, peerId) {
+  let audio = document.getElementById(`audio-${peerId}`);
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = `audio-${peerId}`;
+    audio.autoplay = true;
+    audio.srcObject = stream;
     document.body.appendChild(audio);
 
     const context = new AudioContext();
     const src = context.createMediaStreamSource(stream);
     const analyser = context.createAnalyser();
-    analyser.fftSize = 256;
     src.connect(analyser);
+    analyser.fftSize = 256;
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-    function detectSpeaking(){
+    function checkSpeaking() {
       analyser.getByteFrequencyData(dataArray);
-      const volume = dataArray.reduce((a,b)=>a+b,0)/dataArray.length;
-      const prev = speaking[peerId]||false;
-      speaking[peerId] = volume>20;
-      if(speaking[peerId]!==prev && currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
-      requestAnimationFrame(detectSpeaking);
+      const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+      speaking[peerId] = volume > 20;
+      if (currentVoiceChannel) updateVoiceUsers(currentVoiceChannel);
+      requestAnimationFrame(checkSpeaking);
     }
-    detectSpeaking();
+    checkSpeaking();
   }
 }
 
-function leaveVoiceChannel(){
-  if(localStream) localStream.getTracks().forEach(t=>t.stop());
-  for(let id in peers) peers[id].destroy();
-  peers={};
-  speaking={};
-  localSpeaking=false;
-  if(currentVoiceChannel){
-    socket.emit('voice-leave',{channel:currentVoiceChannel, username});
-    document.getElementById(`vc-${currentVoiceChannel}`).innerText="";
-    voiceUsers[currentVoiceChannel]=[];
+// Leave voice channel
+function leaveVoiceChannel() {
+  if (localStream) localStream.getTracks().forEach(t => t.stop());
+  for (let id in peers) peers[id].destroy();
+  peers = {};
+  speaking = {};
+  if (currentVoiceChannel) {
+    socket.emit('voice-leave', { channel: currentVoiceChannel, username });
+    document.getElementById(`vc-${currentVoiceChannel}`).innerText = "";
+    voiceUsers[currentVoiceChannel] = [];
     updateVoiceUsers(currentVoiceChannel);
-    currentVoiceChannel=null;
+    currentVoiceChannel = null;
   }
 }
 </script>
