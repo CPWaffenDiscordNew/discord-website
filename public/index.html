@@ -107,6 +107,8 @@
 const socket = io();
 
 let currentRoom = 'General';
+let username = prompt("Enter your nickname") || "Anonymous";
+
 joinRoom(currentRoom);
 
 function joinRoom(room) {
@@ -117,8 +119,8 @@ function joinRoom(room) {
   currentRoom = room;
   document.getElementById('messages').innerHTML = '';
 
-  // Join Socket.io room
-  socket.emit('join-room', room);
+  // Join Socket.io room with username
+  socket.emit('join-room', { room, username });
 }
 
 function sendMessage(event) {
@@ -126,14 +128,26 @@ function sendMessage(event) {
   const msgInput = document.getElementById('msgInput');
   const text = msgInput.value.trim();
   if (!text) return;
-  socket.emit('message', { room: currentRoom, text });
+  socket.emit('message', { room: currentRoom, text, username });
   msgInput.value = '';
 }
+
+// Load previous messages when joining a room
+socket.on('load-messages', (msgs) => {
+  const messagesDiv = document.getElementById('messages');
+  msgs.forEach(m => {
+    const div = document.createElement('div');
+    div.innerHTML = `<strong>${m.username}:</strong> ${m.text}`;
+    div.style.margin = '5px 0';
+    messagesDiv.appendChild(div);
+  });
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
 
 socket.on('message', (data) => {
   const messagesDiv = document.getElementById('messages');
   const div = document.createElement('div');
-  div.innerText = data.text;
+  div.innerHTML = `<strong>${data.username}:</strong> ${data.text}`;
   div.style.margin = '5px 0';
   messagesDiv.appendChild(div);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
